@@ -1,0 +1,7 @@
+[project]
+name = "shruti"
+version = "0.1.0"
+description = "WP Bot to transcribe audio and set calender event and store in sheets"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = []

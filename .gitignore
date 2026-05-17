@@ -10,3 +10,6 @@ settings.json
 Plans/
 progress/
 src/__pycache__/
+*.ogg
+*.txt
+__pycache__/

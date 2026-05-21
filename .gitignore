@@ -6,3 +6,4 @@ uv.lock
 .env
 json_google.json
 silai_copilot_build_guide.md
+settings.json

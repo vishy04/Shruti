@@ -9,9 +9,11 @@ dependencies = [
     "fastapi",
     "httpx",
     "groq",
-    "pinecone-client",
+    "pinecone",
     "google-genai",
     "gspread",
     "google-auth",
     "pydub",
+    "python-dotenv",
+    "websockets",
 ]

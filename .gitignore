@@ -3,3 +3,6 @@ uv.lock
 /docs
 .python-version
 .DS_Store
+.env
+json_google.json
+silai_copilot_build_guide.md

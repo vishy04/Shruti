@@ -9,7 +9,6 @@ dependencies = [
     "fastapi",
     "httpx",
     "groq",
-    "pinecone",
     "google-genai",
     "gspread",
     "google-auth",

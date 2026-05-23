@@ -28,3 +28,40 @@ class OrderData(BaseModel):
     delivery_date: str | None = None     # YYYY-MM-DD
     special_instructions: str | None = None
     order_id: str | None = None          # Auto-generated later
+
+
+#extraction logic
+from groq import Groq
+from datetime import datetime
+import json
+from src.prompts import EXTRACTION_PROMPT
+
+def extract_order(transcript:str) -> OrderData:
+    client = Groq()
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    response = client.chat.completions.create(
+        model = "llama-3.3-70b-versatile", 
+        messages =[
+            {
+                "role":"user",
+                "content":EXTRACTION_PROMPT.format(
+                    transcript = transcript,
+                    today = today ,
+                    )
+            }
+        ] ,
+        temperature=0,
+        response_format={"type":"json_object"}
+    )
+
+    data = json.loads(response.choices[0].message.content)
+
+    order = OrderData(**data) #validating with python
+
+    if not order.customer_name or order.customer_name.strip() == "":
+        raise ValueError("Customer name missing from transcript")
+    
+    return order
+
+

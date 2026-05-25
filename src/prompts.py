@@ -20,14 +20,8 @@ EXTRACTION_PROMPT = """
     GARMENT TYPES:
     Frok, Suit, Blouse (Blause), Lehenga (Lenga), Gown (Gaun), Pant
 
-    BOTTOM STYLES:
-    Pant (Trouser Pants), Salwar (Traditional Salwar), Plajo (Palazzo), Patiyala (Patiala Salwar), Afgani (Afghani Salwar), Dhoti, Chudidar
-
-    NECKLINES (gla/gala):
-    Paan, Gol Gla (Round), Vot (Boat Neck), Chokor (Square), Collar, V / V-Neck
-
     MEASUREMENT PARSING RULES (CRITICAL):
-    The tailor often dictates measurements as a rapid sequence of numbers separated by pluses or spaces (e.g., "34+30+38+43+16" or "36 32 40 44 15").
+    The tailor dictating measurements usually says a rapid sequence of numbers separated by pluses or spaces (e.g., "34+30+38+43+16" or "36 32 40 44 15").
     This strict positional notation ALWAYS maps to:
     1. Chest (Chhati)
     2. Waist (Kamar)
@@ -48,18 +42,17 @@ EXTRACTION_PROMPT = """
     - "salwar 38" = Salwar Length 38
     - "mori" / "mohri" = Bottom Width
 
-    DESIGN FEATURES (Boolean true/false):
-    - Pockets / Jeb → has_pocket
-    - Lining / Astar → has_lining
-    - Tassels / Back-strings / Dori / Latkan → has_dori
-    - Lace / Less → has_lace
-    - Buttons / Batan → has_buttons
-
-    FINANCIALS:
-    - Bill/Amount: Note that sometimes amounts are concatenated (e.g. "10001000" means 1000+1000=2000, "600600500" means 1700). → total_bill
-    - Advance Paid / Jma / Jama kiya → advance_paid
+    DESIGN FEATURES (To be placed in special_instructions):
+    - Pocket / Jeb
+    - Lining / Astar
+    - Tassels / Back-strings / Dori / Latkan
+    - Lace / Less
+    - Buttons / Batan
+    - Neckline (gla/gala): Paan, Gol Gla, Vot, Chokor, Collar, V, etc.
+    - Bottom Style: Pant, Salwar, Plajo (Palazzo), Patiyala, Afgani, Dhoti, Chudidar, etc.
 
     RULES:
+    - Always transliterate customer names to standard English/Latin characters (e.g. convert 'जोती साहू' or 'ज्योति साहू' to 'Jyoti Sahu', 'पिंकी' to 'Pinky', 'सविता' to 'Savita'). Do not keep them in Hindi/Devanagari script.
     - Separate the main customer name (`customer_name`) from tags like 'babai', 'mami', 'pawar kheda' (`customer_tag`).
     - Save the exact string of numbers in `raw_measurement_string`.
     - Convert Hindi number words to digits (chhattees → 36).
@@ -78,17 +71,8 @@ EXTRACTION_PROMPT = """
         "garment_length": null, "sleeve_length": null,
         "shoulder": null, "salwar_length": null, "mori": null
     }},
-    "bottom_style": "one of the styles above or null",
-    "neckline": "one of the necklines above or null",
-    "has_pocket": false,
-    "has_lining": false,
-    "has_dori": false,
-    "has_lace": false,
-    "has_buttons": false,
-    "total_bill": null,
-    "advance_paid": null,
     "delivery_date": "YYYY-MM-DD or null",
-    "special_instructions": "any other notes"
+    "special_instructions": "any bottom styles, necklines, linings, pockets, laces, buttons, or notes mentioned"
     }}
 
     Transcript: {transcript}

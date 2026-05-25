@@ -1,4 +1,4 @@
-from modal import secret
+from pathlib import Path
 import modal
 
 app = modal.App("shruti")
@@ -19,8 +19,10 @@ image = (
         "python-dotenv",
         "websockets",
     )
+    .add_local_python_source("src")
 )
 
-secrets = [modal.Secret.from_name("shruti-secrets")]
+env_path = Path(__file__).parent.parent / ".env"
+secrets = [modal.Secret.from_dotenv(env_path)]
 
 

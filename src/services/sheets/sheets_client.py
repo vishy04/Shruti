@@ -1,6 +1,7 @@
 import gspread 
 import gspread.exceptions
 import os 
+import json 
 
 
 
@@ -16,7 +17,7 @@ class Sheet_Client():
     def _get_client(self):
 
         if not self._gc:
-            sa_info = json.loads(os.environ["GOOGLE_SERVICE_ACCOUNT_JSON"])
+            sa_info = json.loads(os.environ["GOOGLE_SERVICE_ACCOUNT_JSON"], strict=False)
             self._gc = gspread.service_account_from_dict(sa_info)
 
         return self._gc
@@ -38,12 +39,12 @@ class Sheet_Client():
     @property
     def order_ws(self):
 
-        if not self._order_ws:
-            self._order_ws = self._get_sheet().worksheet("Orders")
-        return self._order_ws
+        if not self._orders_ws:
+            self._orders_ws = self._get_sheet().worksheet("Orders")
+        return self._orders_ws
 
     @property
-    def processed_ws():
+    def processed_ws(self):
         if not self._processed_ws:
             self._processed_ws = self._get_sheet().worksheet("ProcessedMessages")
         return self._processed_ws

@@ -13,7 +13,7 @@ def classify_intent(transcript:str) -> str:
                 "content": ROUTER_PROMPT.format(transcript = transcript),
             }
         ],
-        model="llama-3.3-70b-versatile",
+        model="llama-3.1-8b-instant",
         temperature=0,
         max_completion_tokens=50,
         response_format={"type":"json_object"},#strict formatting

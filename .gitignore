@@ -13,3 +13,5 @@ src/__pycache__/
 *.ogg
 *.txt
 __pycache__/
+.vscode 
+.understand-anything/

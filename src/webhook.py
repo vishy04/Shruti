@@ -27,6 +27,17 @@ async def verify_webhook(
     logger.warning("Wrong token")
     return PlainTextResponse("Forbidden", status_code=status.HTTP_403_FORBIDDEN)
 
+@fastapi_app.get("/debug")
+async def debug_sheet():
+    from src.sheets import get_worksheets
+    cust_ws, ord_ws = get_worksheets()
+    try:
+        row_604 = ord_ws.row_values(604)
+        headers = ord_ws.row_values(1)
+        return {"row_604": row_604, "headers": headers}
+    except Exception as e:
+        return {"error": str(e)}
+
 @fastapi_app.post("/webhook")
 async def receive_webhook(request: Request):
     #something to do with verification ( see doc )
@@ -49,11 +60,21 @@ async def receive_webhook(request: Request):
             detail="Invalid Signature Header"
         )
 
-    app_secret = os.environ.get("WHATSAPP_APP_SECRET", "").encode("utf-8")
-    expected_hash = hmac.new(app_secret, body , hashlib.sha256).hexdigest()
+    app_secret_raw = os.environ.get("WHATSAPP_APP_SECRET", "")
+    print(f"[DEBUG SECRET] Loaded WHATSAPP_APP_SECRET length: {len(app_secret_raw)}", flush=True)
+    if app_secret_raw:
+        print(f"[DEBUG SECRET] WHATSAPP_APP_SECRET preview: {app_secret_raw[:3]}...{app_secret_raw[-3:]}", flush=True)
+    else:
+        print("[DEBUG SECRET] WHATSAPP_APP_SECRET is empty!", flush=True)
+
+    app_secret = app_secret_raw.encode("utf-8")
+    expected_hash = hmac.new(app_secret, body, hashlib.sha256).hexdigest()
+
+    print(f"[DEBUG SECRET] Received sig_hash: {sig_hash}", flush=True)
+    print(f"[DEBUG SECRET] Expected sig_hash: {expected_hash}", flush=True)
 
     if not hmac.compare_digest(sig_hash, expected_hash):
-        logger.warning("Sign verification failed")
+        logger.warning(f"Sign verification failed. Expected: {expected_hash}, got: {sig_hash}")
         raise HTTPException(status_code = status.HTTP_401_UNAUTHORIZED, detail = "Signature Mismatch")
     
     #parsing payload(I hate this shit)

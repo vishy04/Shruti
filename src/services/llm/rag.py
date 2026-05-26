@@ -1,8 +1,8 @@
-from src.sheets_client import get_customers_ws, get_orders_ws
+from src.services.sheets.sheets_client import get_customers_ws, get_orders_ws
 import io
 import csv
 from groq import Groq
-from src.prompts import RAG_ANSWER_PROMPT
+from src.core.prompts import RAG_ANSWER_PROMPT
 
 
 def fetch_recent_orders(query: str = "") -> str:

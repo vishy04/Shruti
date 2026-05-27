@@ -7,8 +7,8 @@ import io
 import csv
 from groq import Groq
 from datetime import datetime
-from src.prompts import RAG_ANSWER_PROMPT
-from src.extractor import OrderData
+from src.core.prompts import RAG_ANSWER_PROMPT
+from src.services.llm.extractor import OrderData
 from gspread.utils import ValueInputOption
 
 

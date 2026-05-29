@@ -5,7 +5,7 @@ app = modal.App("secret-dumper")
 
 @app.function(secrets=[modal.Secret.from_name("shruti-secrets")])
 def dump_secrets():
-    print("=== DEPLOYED DASHBOARD SECRETS IN 'shruti-secrets' ===")
+    print(" DEPLOYED DASHBOARD SECRETS IN 'shruti-secrets'")
     for key in sorted(os.environ.keys()):
         val = os.environ[key]
         if key in ["WHATSAPP_APP_SECRET", "WHATSAPP_ACCESS_TOKEN", "GOOGLE_GENAI_API_KEY", "GROQ_API_KEY", "PINECONE_API_KEY"]:

@@ -5,7 +5,7 @@ import json
 
 from groq import Groq
 from datetime import datetime
-from src.prompts import EXTRACTION_PROMPT
+from src.core.prompts import EXTRACTION_PROMPT
 
 
 class Measurements(BaseModel):

@@ -3,10 +3,11 @@ import sys
 
 import pytest
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+# Ensure project root is in path (two levels up: tests/unit/ -> project root)
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
-from src import sheets
-from src.extractor import Measurements, OrderData
+from src.services.sheets import sheets
+from src.services.llm.extractor import Measurements, OrderData
 
 
 class FakeCell:

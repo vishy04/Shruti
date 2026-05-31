@@ -1,5 +1,8 @@
 import os
-from src.transcriber import transcribe
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+
+from src.services.audio.transcriber import transcribe
 
 # Resolve paths relative to this script
 base_dir = os.path.dirname(os.path.abspath(__file__))

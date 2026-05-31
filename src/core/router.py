@@ -1,6 +1,6 @@
 from groq import Groq
 import json
-from src.prompts import ROUTER_PROMPT
+from src.core.prompts import ROUTER_PROMPT
 
 def classify_intent(transcript:str) -> str:
 

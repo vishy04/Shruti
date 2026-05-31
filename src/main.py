@@ -24,5 +24,3 @@ image = (
 
 env_path = Path(__file__).parent.parent / ".env"
 secrets = [modal.Secret.from_dotenv(env_path)]
-
-

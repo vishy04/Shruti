@@ -1,15 +1,13 @@
-import gspread
-import gspread.exceptions
 import json
 import os
 import re
-import io
-import csv
-from groq import Groq
 from datetime import datetime
-from src.core.prompts import RAG_ANSWER_PROMPT
-from src.services.llm.extractor import OrderData
+
+import gspread
+import gspread.exceptions
 from gspread.utils import ValueInputOption
+
+from src.services.llm.extractor import OrderData
 
 
 def get_worksheets():
@@ -24,7 +22,7 @@ def get_worksheets():
 
 
 def get_next_sequential_id(ws, prefix: str, start_num: int) -> str:
-    """Generates the next sequential ID (e.g. C-101 or O-1001) from Column A."""
+    """Generates the next sequential ID (e.g. O-1001) from Column A."""
     ids = ws.col_values(1)  # Column A
     max_num = start_num
     for val in ids:
@@ -160,7 +158,8 @@ def is_message_processed(msg_id: str, sender: str) -> bool:
         # Create sheet with 3 columns: Message ID, Sender, Processed At
         processed_ws = sheet.add_worksheet(title="ProcessedMessages", rows=1000, cols=3)
         processed_ws.append_row(
-            ["Message ID", "Sender", "Processed At"], value_input_option="USER_ENTERED"
+            ["Message ID", "Sender", "Processed At"],
+            value_input_option=ValueInputOption.user_entered,
         )
 
     # Search for msg_id in Column A (Message ID) using an exact regex match to avoid partial matches
@@ -171,6 +170,6 @@ def is_message_processed(msg_id: str, sender: str) -> bool:
         # Append the new message ID to log it
         processed_ws.append_row(
             [msg_id, sender, datetime.now().strftime("%d %b %y %H:%M:%S")],
-            value_input_option="USER_ENTERED",
+            value_input_option=ValueInputOption.user_entered,
         )
         return False

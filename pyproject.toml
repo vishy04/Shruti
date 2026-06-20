@@ -9,15 +9,19 @@ dependencies = [
     "fastapi",
     "httpx",
     "groq",
-    "google-genai",
     "gspread",
     "google-auth",
-    "pydub",
     "python-dotenv",
-    "websockets",
+    "supabase>=2.31.0",
 ]
 
 [dependency-groups]
 dev = [
     "pytest>=9.0.3",
 ]
+
+[tool.pytest.ini_options]
+markers = [
+    "integration: integration tests"
+]
+

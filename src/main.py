@@ -9,15 +9,11 @@ image = (
     .uv_pip_install(
         "fastapi",
         "google-auth",
-        "google-genai",
         "gspread",
         "groq",
         "httpx",
         "modal",
-        "pinecone",
-        "pydub",
         "python-dotenv",
-        "websockets",
     )
     .add_local_python_source("src")
 )

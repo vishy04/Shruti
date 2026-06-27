@@ -1,4 +1,5 @@
 from groq import Groq
+from typing import cast
 import io
 
 def transcribe(audio_bytes: bytes) -> str:
@@ -9,4 +10,5 @@ def transcribe(audio_bytes: bytes) -> str:
         language="hi",
         response_format="text",
     )
-    return transcription
+    # whisper say it return object, type checker mad. me cast to string make type checker happy.
+    return cast(str, transcription)

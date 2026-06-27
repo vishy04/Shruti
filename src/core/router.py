@@ -19,5 +19,9 @@ def classify_intent(transcript:str) -> str:
         response_format={"type":"json_object"},#strict formatting
     )
 
-    result = json.loads(response.choices[0].message.content)
-    return result.get("intent","ORDER")
+    # api give no text sometime, me check empty first so load no break.
+    content = response.choices[0].message.content
+    if not content:
+        raise ValueError("Empty response received from LLM")
+    result = json.loads(content)
+    return result.get("intent", "ORDER")

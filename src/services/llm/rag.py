@@ -124,4 +124,6 @@ def answer_question(transcript: str) -> str:
         ],
         temperature=0.1,
     )
-    return response.choices[0].message.content
+    # output can be none, me change to empty string if none so return string always.
+    content = response.choices[0].message.content
+    return content if content is not None else ""

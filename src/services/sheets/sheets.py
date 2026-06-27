@@ -8,17 +8,12 @@ import gspread.exceptions
 from gspread.utils import ValueInputOption
 
 from src.services.llm.extractor import OrderData
+from src.services.sheets.sheets_client import get_customers_ws, get_orders_ws, get_processed_messages_ws
 
 
 def get_worksheets():
-    """Helper to authenticate and fetch both Customers and Orders sheets."""
-    sa_info = json.loads(os.environ["GOOGLE_SERVICE_ACCOUNT_JSON"])
-    gc = gspread.service_account_from_dict(sa_info)
-    sheet = gc.open_by_key(os.environ["GOOGLE_SHEET_ID"])
-
-    customers_ws = sheet.worksheet("Customers")
-    orders_ws = sheet.worksheet("Orders")
-    return customers_ws, orders_ws
+    """Helper to fetch both Customers and Orders sheets."""
+    return get_customers_ws(), get_orders_ws()
 
 
 def get_next_sequential_id(ws, prefix: str, start_num: int) -> str:
@@ -83,9 +78,10 @@ def append_order(order: OrderData):
 
     # If customer is new, register them in Customers tab
     if not cust_id:
-        res_cust = cust_ws.append_row(
+        cust_id = get_next_sequential_id(cust_ws, "C", 100)
+        cust_ws.append_row(
             [
-                "PENDING",
+                cust_id,
                 order.customer_name,
                 order.customer_tag or "",
                 order.special_instructions or "",  # General notes
@@ -94,28 +90,6 @@ def append_order(order: OrderData):
             ],
             value_input_option=ValueInputOption.user_entered,
         )
-
-        # Get the row number dynamically from range (e.g. "Customers!A105:F105")
-        updated_range = res_cust.get("updates", {}).get("updatedRange", "")
-        row_num = int(re.findall(r"\d+", updated_range)[0])
-
-        # Get the ID of the previous row with a retry loop to handle concurrent writes safely
-        import time
-
-        prev_id = "PENDING"
-        for _ in range(20):
-            prev_id = cust_ws.cell(row_num - 1, 1).value
-            if prev_id != "PENDING":
-                break
-            time.sleep(0.1)
-
-        try:
-            prev_num = int((prev_id or " ").split("-")[1])
-        except (ValueError, IndexError, AttributeError):
-            prev_num = 100  # Default fallback
-
-        cust_id = f"C-{prev_num + 1}"
-        cust_ws.update_acell(f"A{row_num}", cust_id)
 
     # 2. Insert the newest order directly under the header so recent measurements
     # stay at the top of the sheet.
@@ -148,13 +122,11 @@ def is_message_processed(msg_id: str, sender: str) -> bool:
     """Checks if a message ID has already been processed using a ProcessedMessages sheet.
     If not processed, appends it and returns False. If already processed, returns True.
     """
-    sa_info = json.loads(os.environ["GOOGLE_SERVICE_ACCOUNT_JSON"])
-    gc = gspread.service_account_from_dict(sa_info)
-    sheet = gc.open_by_key(os.environ["GOOGLE_SHEET_ID"])
-
     try:
-        processed_ws = sheet.worksheet("ProcessedMessages")
+        processed_ws = get_processed_messages_ws()
     except gspread.exceptions.WorksheetNotFound:
+        from src.services.sheets.sheets_client import _client
+        sheet = _client._get_sheet()
         # Create sheet with 3 columns: Message ID, Sender, Processed At
         processed_ws = sheet.add_worksheet(title="ProcessedMessages", rows=1000, cols=3)
         processed_ws.append_row(

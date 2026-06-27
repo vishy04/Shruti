@@ -14,69 +14,46 @@ ROUTER_PROMPT = """
     """
 
 EXTRACTION_PROMPT = """
-    You are an expert data extraction assistant for a ladies' tailoring shop.
-    Extract structured data from this tailor's specific Hinglish shorthand and measurements.
+You are a metadata extraction assistant for a ladies' tailoring shop.
+Your job is to extract ONLY high-level metadata from the tailor's Hinglish
+dictation. Do NOT parse or interpret individual measurements.
 
-    GARMENT TYPES:
-    Frok, Suit, Blouse (Blause), Lehenga (Lenga), Gown (Gaun), Pant
+Today's date: {today}
 
-    MEASUREMENT PARSING RULES (CRITICAL):
-    The tailor dictating measurements usually says a rapid sequence of numbers separated by pluses or spaces (e.g., "34+30+38+43+16" or "36 32 40 44 15").
-    This strict positional notation ALWAYS maps to:
-    1. Chest (Chhati)
-    2. Waist (Kamar)
-    3. Hip
-    4. Garment Length (Lambai / l / lenth)
-    5. Sleeve Length (Baju / sl)
+INSTRUCTIONS:
+1. Extract the customer's name (`customer_name`).
+   - Transliterate Hindi/Devanagari names to English (e.g. 'ज्योति साहू' → 'Jyoti Sahu').
+   - The name is almost always the first word(s) before the numbers begin.
 
-    For example, "34+30+38+43+16" means:
-    chest=34, waist=30, hip=38, garment_length=43, sleeve_length=16.
+2. Extract `customer_tag` ONLY if a location, relationship, or identifier
+   tag is clearly present (e.g. 'babai', 'mami', 'pawar kheda', 'Kolar').
+   Otherwise return null.
 
-    If only 3 numbers are given (e.g. for a blouse like "36+33+15"):
-    It maps to Chest, Waist, and Sleeve Length.
+3. Extract `delivery_date` ONLY if a date is clearly mentioned
+   (e.g. '1 June', 'delivery 5 July', '15 tarikh').
+   - Normalize to YYYY-MM-DD using today's date as reference.
+   - If no date is mentioned, return null.
 
-    Other terms:
-    - "l" or "lenth" = Garment Length
-    - "sl" = Sleeve Length
-    - "kandha" = Shoulder
-    - "salwar 38" = Salwar Length 38
-    - "mori" / "mohri" = Bottom Width
+4. Copy the ENTIRE original text into `raw_measurement_text` EXACTLY
+   as given. Do not edit, reformat, or rewrite any part of it.
 
-    DESIGN FEATURES (To be placed in special_instructions):
-    - Pocket / Jeb
-    - Lining / Astar
-    - Tassels / Back-strings / Dori / Latkan
-    - Lace / Less
-    - Buttons / Batan
-    - Neckline (gla/gala): Paan, Gol Gla, Vot, Chokor, Collar, V, etc.
-    - Bottom Style: Pant, Salwar, Plajo (Palazzo), Patiyala, Afgani, Dhoti, Chudidar, etc.
+CRITICAL RULES:
+- Do NOT parse chest, waist, hip, sleeve, or any individual measurements.
+- Do NOT identify garment types.
+- Do NOT extract special instructions, necklines, or design features.
+- Do NOT rewrite the shorthand or correct spelling.
+- Preserve the raw text character-for-character.
 
-    RULES:
-    - Always transliterate customer names to standard English/Latin characters (e.g. convert 'जोती साहू' or 'ज्योति साहू' to 'Jyoti Sahu', 'पिंकी' to 'Pinky', 'सविता' to 'Savita'). Do not keep them in Hindi/Devanagari script.
-    - Separate the main customer name (`customer_name`) from tags like 'babai', 'mami', 'pawar kheda' (`customer_tag`).
-    - Save the exact string of numbers in `raw_measurement_string`.
-    - Convert Hindi number words to digits (chhattees → 36).
-    - All measurements should be in inches.
-    - For relative dates, calculate from today: {today}
+Return ONLY this JSON:
+{{
+  "customer_name": "extracted name",
+  "customer_tag": "tag or null",
+  "delivery_date": "YYYY-MM-DD or null",
+  "raw_measurement_text": "exact original text, unchanged"
+}}
 
-    Return ONLY this JSON:
-    {{
-    "thinking_process": "Briefly explain how you are mapping the number sequence and extracting features.",
-    "customer_name": "main name",
-    "customer_tag": "location or relationship tag or null",
-    "garment_type": "one of the types above",
-    "measurements": {{
-        "raw_measurement_string": "the exact string e.g. 34+30+38+43+16",
-        "chest": null, "waist": null, "hip": null,
-        "garment_length": null, "sleeve_length": null,
-        "shoulder": null, "salwar_length": null, "mori": null
-    }},
-    "delivery_date": "YYYY-MM-DD or null",
-    "special_instructions": "any bottom styles, necklines, linings, pockets, laces, buttons, or notes mentioned"
-    }}
-
-    Transcript: {transcript}
-    """
+Transcript: {transcript}
+"""
 
 
 RAG_ANSWER_PROMPT = """

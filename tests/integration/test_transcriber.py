@@ -1,16 +1,17 @@
 import os
-import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
-
+import pytest
 from src.services.audio.transcriber import transcribe
 
-# Resolve paths relative to this script
-base_dir = os.path.dirname(os.path.abspath(__file__))
-audio_path = os.path.join(base_dir, "q_audio.ogg")
-transcript_path = os.path.join(base_dir, "q_transcript.txt")
-
-with open(audio_path, "rb") as f, open(transcript_path, "w") as n:
-    text = transcribe(f.read())
-    n.write(text)
-
-print(f"Transcript: {text}")
+@pytest.mark.integration
+def test_transcriber_integration():
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    audio_path = os.path.join(base_dir, "q_audio.ogg")
+    
+    if not os.path.exists(audio_path):
+        pytest.skip("Audio file q_audio.ogg not found, skipping transcription integration test")
+        
+    with open(audio_path, "rb") as f:
+        text = transcribe(f.read())
+    
+    assert text is not None
+    assert len(text) > 0

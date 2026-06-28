@@ -1,105 +1,45 @@
 import os
-import sys
-
-# Ensure project root is in path (two levels up: tests/integration/ -> project root)
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
-
-from dotenv import load_dotenv
+import pytest
+import uuid
 from src.services.llm.extractor import extract_order
-from src.services.sheets.sheets import append_order
+from src.services.sheets.sheets import append_order, is_message_processed
 from src.services.llm.rag import fetch_recent_orders, answer_question
 
-load_dotenv()
-
-
-def run_integration_test():
-    print("=" * 60)
-    print("        SILAI LIVE PIPELINE INTEGRATION TEST           ")
-    print("=" * 60)
-
+@pytest.mark.integration
+def test_live_sheets_pipeline_integration():
     # 0. Test Persistent Deduplication
-    print("Step 0: Testing persistent deduplication...")
-    import uuid
-    from src.services.sheets.sheets import is_message_processed
-
     test_msg_id = f"test-wamid-{uuid.uuid4()}"
     test_sender = "918839038332"
 
-    try:
-        is_dup1 = is_message_processed(test_msg_id, test_sender)
-        print(f"   First call: is_duplicate={is_dup1} (Expected: False)")
+    is_dup1 = is_message_processed(test_msg_id, test_sender)
+    assert is_dup1 is False, "First deduplication check should be False"
 
-        is_dup2 = is_message_processed(test_msg_id, test_sender)
-        print(f"   Second call: is_duplicate={is_dup2} (Expected: True)")
-
-        if not is_dup1 and is_dup2:
-            print("✅ Step 0: Persistent Deduplication Successful!")
-        else:
-            print("❌ Step 0: Persistent Deduplication Failed!")
-            return
-    except Exception as e:
-        print(f"❌ Step 0 failed with error: {e}")
-        return
+    is_dup2 = is_message_processed(test_msg_id, test_sender)
+    assert is_dup2 is True, "Second deduplication check should be True"
 
     # 1. Test Mock Voice/Text Transcription Extraction
     mock_transcript = "Sunita gour ka suit chest 36 waist 31 hip 40 Kandha 14 sleeve 15 length 42 salwar 37 mohri 6 pocket lagana hai, delivery next week tak chahiye"
-    print(
-        f"Step 1: Extracting from mock transcript...\n   Transcript: '{mock_transcript}'"
-    )
-
-    try:
-        order = extract_order(mock_transcript)
-        print("✅ Step 1: Extraction Successful!")
-        print(f"   Customer Name: {order.customer_name}")
-        print(f"   Garment: {order.garment_type}")
-        print(
-            f"   Measurements: Chest={order.measurements.chest}, Waist={order.measurements.waist}, Hip={order.measurements.hip}"
-        )
-        print(f"   Notes: {order.special_instructions}")
-    except Exception as e:
-        print(f"❌ Step 1 failed: {e}")
-        return
+    order = extract_order(mock_transcript)
+    
+    assert order.customer_name.lower() == "sunita gour"
+    assert order.garment_type.lower() == "suit"
+    assert order.measurements is not None
+    assert order.measurements.chest == 36
+    assert order.measurements.waist == 31
+    assert order.measurements.hip == 40
 
     # 2. Test Sheets insertion & ID generation
-    print("\nStep 2: Saving to Google Sheets (Relational)...")
-    try:
-        append_order(order)
-        print("✅ Step 2: Save Successful!")
-        print(f"   Assigned Order ID: {order.order_id}")
-    except Exception as e:
-        print(f"❌ Step 2 failed: {e}")
-        return
+    append_order(order)
+    assert order.order_id is not None
+    assert order.order_id.startswith("O-")
 
     # 3. Test RAG Context fetch
-    print("\nStep 3: Fetching RAG Context...")
-    try:
-        context = fetch_recent_orders()
-        print("✅ Step 3: Fetch Successful!")
-        # Print a small slice of the context
-        lines = context.split("\n")
-        print("   Context Snippet:")
-        for line in lines[:8]:
-            print(f"     {line}")
-        print("     ...")
-    except Exception as e:
-        print(f"❌ Step 3 failed: {e}")
-        return
+    context = fetch_recent_orders()
+    assert context is not None
+    assert len(context) > 0
 
     # 4. Test Q&A Answering
     question = "Sunita gour ke suit ka waist measurement kya hai?"
-    print(f"\nStep 4: Asking Question...\n   Question: '{question}'")
-    try:
-        answer = answer_question(question)
-        print("✅ Step 4: Q&A Successful!")
-        print(f"   Answer: {answer}")
-    except Exception as e:
-        print(f"❌ Step 4 failed: {e}")
-        return
-
-    print("=" * 60)
-    print("🎉 Integration Test Passed Successfully!")
-    print("=" * 60)
-
-
-if __name__ == "__main__":
-    run_integration_test()
+    answer = answer_question(question)
+    assert answer is not None
+    assert "31" in answer

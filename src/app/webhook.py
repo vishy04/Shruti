@@ -34,19 +34,6 @@ async def verify_webhook(
     return PlainTextResponse("Forbidden", status_code=status.HTTP_403_FORBIDDEN)
 
 
-@fastapi_app.get("/debug")
-async def debug_sheet():
-    from src.services.sheets.sheets_client import get_customers_ws, get_orders_ws
-
-    cust_ws, ord_ws = get_customers_ws(), get_orders_ws()
-
-    try:
-        row_604 = ord_ws.row_values(604)
-        headers = ord_ws.row_values(1)
-        return {"row_604": row_604, "headers": headers}
-    except Exception as e:
-        return {"error": str(e)}
-
 
 @fastapi_app.post("/webhook")
 async def receive_webhook(request: Request):
